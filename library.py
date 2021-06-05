@@ -48,20 +48,19 @@ class LibPkg(object):
 
 class SchPart(object):
 
-    def __init__(self, stream: OleStream) -> None:
+    def __init__(self, stream: OleStream, description='') -> None:
         super().__init__()
         records = altium.iter_records(stream)
         records = (altium.parse_properties(stream, record) for record in records)
 
         # Decode header
         header = next(records)
+        self.desc = description
         self.id = header.get('DESIGNITEMID')
         if self.id is not None:
             self.id = self.id.decode('ascii')
-            self.desc = header.get('COMPONENTDESCRIPTION', default=b'').decode('ascii')
         else:
             self.id = header.get('LIBREFERENCE').decode('ascii')
-            self.desc = ''
 
         # Decode properties and footprints
         self.designator = ''
@@ -125,12 +124,13 @@ class SchLib(object):
         cnt = 0
         while True:
             libref = header.get("LIBREF{}".format(cnt), None)
-            #print(header)
+            desc = header.get("COMPDESCR{}".format(cnt), b'').decode('utf8', errors='replace')
+            #print(desc)
             if not libref:
                 break
             stream = file.openstream([libref.decode('ascii'), 'Data'])
             try:
-                part = SchPart(stream)
+                part = SchPart(stream, description=desc)
                 self.parts[libref.decode('ascii')] = part
             except ValueError as ve:
                 pass
