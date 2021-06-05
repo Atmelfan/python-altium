@@ -124,7 +124,9 @@ class SchLib(object):
         cnt = 0
         while True:
             libref = header.get("LIBREF{}".format(cnt), None)
-            desc = header.get("COMPDESCR{}".format(cnt), b'').decode('utf8', errors='replace')
+            desc = header.get("COMPDESCR{}".format(cnt), b'')\
+                .decode('utf8', errors='replace')\
+                .replace('\n', ' ')
             #print(desc)
             if not libref:
                 break
